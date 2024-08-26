@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generative Art 3</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.js"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #000;
+        }
+        canvas {
+            border: 2px solid #fff;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+        }
+    </style>
+</head>
+<body>
+    <script>
+        let blobs = [];
+        let minBlobs = 5;
+        let maxBlobs = 7;
+        let equalizer;
+        let amplitude;
+
+        let sliderX; // Position of the slider
+        let sliderDirection = 1; // Direction of the slider movement
+        let dialAngle = 0; // Angle for the spinning dial
+
+        function setup() {
+        createCanvas(800, 600);
+        noStroke();
+
+        // Initialize blobs
+        for (let i = 0; i < random(minBlobs, maxBlobs); i++) {
+            blobs.push(new Lava(random(width), random(height), random(width/16, width/8), random(1, 3), random(TWO_PI)));
+        }
+
+        // Initialize the equalizer
+        equalizer = new Equalizer();
+
+        // Initialize slider position
+        sliderX = width/4;
+        }
+
+        function draw() {
+        background(0, 0, 100);
+
+        noStroke();
+        // Draw and update all blobs
+        for (let lava of blobs) {
+            lava.update();
+            lava.display();
+        }
+
+        // Handle blob merging and removal of oversized blobs
+        for (let i = 0; i < blobs.length; i++) {
+            for (let j = i + 1; j < blobs.length; j++) {
+            if (blobs[i].checkMerge(blobs[j])) {
+                blobs.splice(j, 1);
+            }
+            }
+        }
+
+        // Spawn new blobs if needed
+        if (blobs.length < minBlobs) {
+            for (let i = 0; i < random(minBlobs-2, maxBlobs-2); i++) {
+            blobs.push(new Lava(random(width), -width/8, random(width/16, width/8), random(1, 3), random(TWO_PI)));
+            }
+        }
+
+        // Draw the equalizer
+        equalizer.update();
+        equalizer.display();
+
+        // Draw and animate the slider
+        drawSlider();
+
+        // Draw and animate the dial
+        drawDial();
+        }
+
+        // Blob class to define blob properties and behavior
+        class Lava {
+        constructor(x, y, r, speed, angleOffset) {
+            this.x = x;
+            this.y = y;
+            this.r = r;
+            this.speed = speed;
+            this.angleOffset = angleOffset;
+        }
+
+        update() {
+            // Move blob vertically
+            this.y += this.speed;
+            if (this.y - this.r > height) {
+            if (this.r > width/5) {
+                this.r = random(width/16, width/8);
+            }
+            this.y = -this.r;
+            this.x = random(width);
+            this.speed = random(1, 3);
+            }
+
+            // Blob size oscillation
+            this.r += sin(frameCount * 0.05 + this.angleOffset) * 0.5;
+        }
+
+        display() {
+            let lavaColor = color(255, 128, 13, 200);
+            fill(lavaColor);
+            beginShape();
+            for (let angle = 0; angle < TWO_PI; angle += 0.1) {
+            let xoff = map(cos(angle), -1, 1, 0, 1);
+            let yoff = map(sin(angle), -1, 1, 0, 1);
+            let r = this.r + map(noise(xoff*2, yoff*2, frameCount * 0.01), 0, 1, -10, 10);
+            let x = this.x + r * cos(angle);
+            let y = this.y + r * sin(angle);
+            vertex(x, y);
+            }
+            endShape(CLOSE);
+        }
+
+        checkMerge(other) {
+            let d = dist(this.x, this.y, other.x, other.y);
+            if (d < (this.r + other.r)/1.5) {
+            let newR = sqrt(this.r * this.r + other.r * other.r);
+            if (newR > width/4) {
+                return false;
+            } else {
+                this.r = newR;
+
+                // Adjust positions to merge smoothly
+                this.x = (this.x + other.x) / 2;
+                this.y = (this.y + other.y) / 2;
+                return true;
+            }
+            }
+            
+            return false;
+        }
+        }
+
+        // Equalizer class to define equalizer properties and behavior
+        class Equalizer {
+        constructor() {
+            this.numBars = 20; // Number of equalizer bars
+            this.barWidth = width / this.numBars;
+            this.maxBarHeight = height / 2;
+            this.spacing = 0; // Spacing between bars and floor
+        }
+
+        update() {
+            // Update the equalizer animation
+            this.timeOffset = frameCount * 0.05; // Control the speed of animation
+        }
+
+        display() {
+            noFill();
+            strokeWeight(3);
+
+            for (let i = 0; i < this.numBars; i++) {
+            let x = i * this.barWidth + this.barWidth / 2;
+            let barHeight = sin(this.timeOffset + i * 0.2) * this.maxBarHeight / 2 + this.maxBarHeight / 2;
+            barHeight += (0.5 * blobs[i % blobs.length].r) + min(100, max(Math.abs(mouseX - pmouseX), Math.abs(mouseY - pmouseY))); // Adjust based on lava blob size and mouse movement
+            
+            if (barHeight < height/4) {
+                stroke(255, 255, 0); // Bright color for the equalizer bars
+            } else if (barHeight < height/2.5) {
+                stroke(0, 255, 0); // Bright color for the equalizer bars
+            } else {      
+                stroke(255, 0, 0); // Bright color for the equalizer bars
+            }
+            line(x, height - this.spacing, x, height - this.spacing - barHeight);
+            }
+        }
+        }
+
+        // Draw and animate the slider
+        function drawSlider() {
+        let sliderWidth = 100;
+        let sliderHeight = 10;
+        let sliderY = height/5;
+
+        // Move the slider
+        sliderX += sliderDirection * 2;
+        if (sliderX < width/5 || sliderX > 3*width/5) {
+            sliderDirection *= -1;
+        }
+
+        fill(150);
+        rect(width/5, sliderY - sliderHeight / 2, 3*width/5, sliderHeight);
+        fill(255);
+        rect(sliderX - 10, sliderY - 15, 20, 30);
+        }
+
+        // Draw and animate the dial
+        function drawDial() {
+        let dialX = 4*width/5;
+        let dialY = height/5;
+        let dialRadius = 30;
+
+        // Spin the dial
+        dialAngle += 0.05;
+
+        fill(100);
+        ellipse(dialX, dialY, dialRadius * 2);
+        fill(255);
+        ellipse(dialX, dialY, dialRadius * 1.5);
+        stroke(255);
+        strokeWeight(2);
+        line(dialX, dialY, dialX + dialRadius * cos(dialAngle), dialY + dialRadius * sin(dialAngle));
+        }
+    </script>
+</body>
+</html>

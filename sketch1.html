@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generative Art 1</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.js"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f0f0f0; /* Light gray background */
+        }
+        canvas {
+            border: 2px solid #333; /* Dark border around the canvas */
+            border-radius: 10px; /* Rounded corners for a softer look */
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5); /* Shadow for depth */
+        }
+    </style>
+</head>
+<body>
+    <script>
+        let circles = [];
+        let squares = [];
+        let particles = [];
+        let numCircles = 100;
+        let numSquares = 10;
+        let threshold = 10; // Distance threshold for disappearing
+
+        function setup() {
+            createCanvas(800, 600);
+            noStroke();
+
+            // Initialize squares
+            for (let i = 0; i < numSquares; i++) {
+                squares.push(createSquare());
+            }
+
+            // Initialize circles
+            for (let i = 0; i < numCircles; i++) {
+                circles.push(createCircle());
+            }
+        }
+
+        function draw() {
+            // Dynamic background color
+            let bgColor = map(sin(frameCount * 0.01), -1, 1, 50, 200);
+            background(bgColor, bgColor, bgColor);
+
+            // Update and draw squares
+            for (let i = 0; i < squares.length; i++) {
+                let square = squares[i];
+
+                // Update square position
+                square.x += square.xSpeed;
+                square.y += square.ySpeed;
+
+                // Check for collision with walls and reverse direction if needed
+                if (square.x < 0 || square.x > width - square.size) {
+                    if ((square.x < width / 2 && square.xSpeed < 0) || (square.x > width / 2 && square.xSpeed > 0)) {
+                        square.xSpeed *= -1;
+                    }
+                    createExplosion(square.x, square.y);
+                }
+                if (square.y < 0 || square.y > height - square.size) {
+                    if ((square.y < height / 2 && square.ySpeed < 0) || (square.y > height / 2 && square.ySpeed > 0)) {
+                        square.ySpeed *= -1;
+                    }
+                    createExplosion(square.x, square.y);
+                }
+
+                // Gradually change square size
+                square.size = map(sin(frameCount * 0.02 + i), -1, 1, 80, 100);
+                // Draw the square
+                fill(square.color);
+                rect(square.x, square.y, square.size, square.size);
+            }
+
+            // Update and draw circles
+            for (let i = 0; i < circles.length; i++) {
+                let circle = circles[i];
+
+                // Update circle position based on its speed towards the mouse cursor
+                circle.x += circle.xSpeed;
+                circle.y += circle.ySpeed;
+
+                // Check if circle is close to the mouse and reset if necessary
+                if (dist(circle.x, circle.y, mouseX, mouseY) < circle.size / 2 + threshold) {
+                    createExplosion(circle.x, circle.y);
+                    circles[i] = createCircle();
+                }
+
+                // Draw the circle
+                fill(circle.color);
+                ellipse(circle.x, circle.y, circle.size);
+
+                // Calculate direction towards the mouse cursor
+                let angle = atan2(mouseY - circle.y, mouseX - circle.x);
+                circle.xSpeed = cos(angle) * circle.speed;
+                circle.ySpeed = sin(angle) * circle.speed;
+            }
+
+            // Update and draw particles
+            for (let i = particles.length - 1; i >= 0; i--) {
+                let p = particles[i];
+                p.x += p.xSpeed;
+                p.y += p.ySpeed;
+                p.life -= 2;
+
+                fill(p.color.levels[0], p.color.levels[1], p.color.levels[2], p.life);
+                ellipse(p.x, p.y, p.size);
+
+                if (p.life <= 0) {
+                    particles.splice(i, 1);
+                }
+            }
+        }
+
+        function createCircle() {
+            let edge = floor(random(4)); // Randomly choose an edge
+            let x, y, speed;
+
+            if (edge === 0) { // Top edge
+                x = random(width);
+                y = 0;
+            } else if (edge === 1) { // Right edge
+                x = width;
+                y = random(height);
+            } else if (edge === 2) { // Bottom edge
+                x = random(width);
+                y = height;
+            } else { // Left edge
+                x = 0;
+                y = random(height);
+            }
+
+            speed = random(1, 5);
+
+            return {
+                x: x,
+                y: y,
+                size: random(10, 30),
+                speed: speed,
+                xSpeed: 0, // Placeholder value, will be updated in draw
+                ySpeed: 0, // Placeholder value, will be updated in draw
+                color: color(random(255), random(255), random(255)) // Random color
+            };
+        }
+
+        function createSquare() {
+            return {
+                x: random(width / 2),
+                y: random(height / 2),
+                size: random(80, 100),
+                xSpeed: random(1, 3),
+                ySpeed: random(1, 3),
+                color: color(random(255), random(255), random(255)) // Random color
+            };
+        }
+
+        function createExplosion(x, y) {
+            let numParticles = random(5, 10);
+            for (let i = 0; i < numParticles; i++) {
+                particles.push({
+                    x: x,
+                    y: y,
+                    size: random(2, 5),
+                    xSpeed: random(-2, 2),
+                    ySpeed: random(-2, 2),
+                    life: 255,
+                    color: color(random(255), random(255), random(255))
+                });
+            }
+        }
+
+        function mousePressed() {
+            // Change square direction and color on mouse press
+            for (let i = 0; i < squares.length; i++) {
+                let square = squares[i];
+                square.xSpeed *= -1;
+                square.ySpeed *= -1;
+                square.color = color(random(255), random(255), random(255));
+            }
+        }
+    </script>
+</body>
+</html>

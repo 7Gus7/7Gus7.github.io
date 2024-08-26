@@ -1,28 +1,54 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Angus' website portfolio!">
-    <title>Swag Portfolio</title>
+    <meta name="description" content="Angus' artistic website!">
+    <title>Swag Website Art</title>
+    <link rel="stylesheet" href="styles.css">
+    <script defer src="script.js"></script>
 </head>
 
 <body>
-    <header>
-        <h1>Salutations!</h1>
-    </header>
+    <div class="container">
+        <div class="tv">
+            <img src="https://img1.picmix.com/output/stamp/normal/8/6/4/8/2608468_906fd.png" alt="Television">
+            <div class="tv-text">
+                <h1>Welcome to My 90s Website</h1>
+                <h2>Frutiger Aero themed!</h2>
+            </div>
+        </div>
 
-    <h1>Welcome to my <strong>5-minute site</strong></h1>
-    <p>It's more of an exercise but ya know</p>
-
-    <nav>
-        <ul>
-            <li><a href="index.html">Already here</a></li>
-            <li><a href="second_page.html">silly little second page</a></li>
-        </ul>
-    </nav>
-
+        <div class="bubble" onclick="changeText(this, 1)" style="top: 50px; left: 60%; width: 800px; height: 800px;">
+            <img src="https://pngimg.com/uploads/soap_bubbles/soap_bubbles_PNG51.png" alt="Bubble 1">
+            <div class="bubble-content">
+                <p>Pop me!</p>
+            </div>
+        </div>
+        <div class="bubble" onclick="changeText(this, 2)" style="top: 550px; left: 5%; width: 500px; height: 500px;">
+            <img src="https://pngimg.com/uploads/soap_bubbles/soap_bubbles_PNG51.png" alt="Bubble 2">
+            <div class="bubble-content">
+                <p>Poke me!</p>
+            </div>
+        </div>
+        <div class="bubble bubble-black" onclick="changeText(this, 3)" style="top: 800px; left: 75%; width: 400px; height: 400px;">
+            <img src="https://pngimg.com/uploads/soap_bubbles/soap_bubbles_PNG51.png" alt="Bubble 3">
+            <div class="bubble-content">
+                <p>Blow me away!</p>
+            </div>
+        </div>
+        <div class="bubble" onclick="changeText(this, 4)" style="top: 600px; left: 40%; width: 300px; height: 300px;">
+            <img src="https://pngimg.com/uploads/soap_bubbles/soap_bubbles_PNG51.png" alt="Bubble 4">
+            <div class="bubble-content">
+                <p>Make me explode!</p>
+            </div>
+        </div>
+        <div class="bubble bubble-black" onclick="changeText(this, 5)" style="top: 900px; left: 20%; width: 1000px; height: 1000px;">
+            <img src="https://pngimg.com/uploads/soap_bubbles/soap_bubbles_PNG51.png" alt="Bubble 5">
+            <div class="bubble-content" id="bubble-main">
+                <p>Maybe don't pop this one... jk</p>
+            </div>
+        </div>
+    </div>
 </body>
-
 </html>

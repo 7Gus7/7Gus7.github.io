@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generative Art 2</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.js"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f0f0f0; /* Light gray background */
+        }
+        canvas {
+            border: 2px solid #333; /* Dark border around the canvas */
+            border-radius: 10px; /* Rounded corners for a softer look */
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5); /* Shadow for depth */
+        }
+    </style>
+</head>
+<body>
+    <script>
+        let sunGraphics;
+        let groundOffset = 0; // Offset for moving the ground
+        let trees = []; // Array to hold multiple trees
+        let numTrees = 7; // Number of trees in the scene
+        let mountain;
+
+        function setup() {
+            createCanvas(800, 600);
+            sunGraphics = createGraphics(width, height);
+            for (let i = 0; i < numTrees; i++) {
+                trees.push(makeTree());
+            }
+            mountain = makeMountain(); // Create a single mountain
+        }
+
+        function draw() {
+            drawGradientBackground();
+            drawSunWithCuts();
+            drawWireframeGround();
+            image(sunGraphics, 0, 0); // Draw the sun from the graphics buffer
+            
+            fill(0, 255, 255);
+            drawMountain(mountain); // Draw the single mountain
+            noFill();
+            
+            // Update and draw each tree
+            trees.sort((a, b) => a.tby - b.tby);
+            for (let tree of trees) {
+                drawWireframePalmTree(tree);
+            }
+            
+            groundOffset += width / 800; // Adjust this value to control the speed of panning
+            
+            // Remove trees that have moved off the screen and add new ones
+            for (let i = trees.length - 1; i >= 0; i--) {
+                if (trees[i].tbx - groundOffset < -width / 2) {
+                    trees.splice(i, 1); // Remove the tree
+                    trees.push(makeTree()); // Add a new tree
+                }
+            }
+            
+            // Reset and create a new mountain when the previous one moves off-screen
+            if (mountain.bx + mountain.bw - groundOffset / 4 < 0) {
+                mountain = makeMountain();
+            }
+        }
+
+        function drawGradientBackground() {
+            for (let i = 0; i <= height; i++) {
+                let inter = map(i, 0, height, 0, 1);
+                let c = lerpColor(color(63, 130, 251), color(252, 70, 107), inter);
+                stroke(c);
+                line(0, i, width, i);
+            }
+        }
+
+        function drawSunWithCuts() {
+            let x = width / 2;
+            let y = height / 3;
+            let radius = 100;
+            let numCuts = 7; // Number of horizontal cuts
+            let cutHeight = radius / 6; // Height of each cut
+            let sunColor = color(255, 204, 102); // Sun color
+            
+            sunGraphics.clear(); // Clear previous drawings
+            sunGraphics.push();
+            sunGraphics.noStroke();
+            sunGraphics.fill(sunColor);
+            sunGraphics.ellipse(x, y, radius * 2, radius * 2);
+            
+            // Draw the cutouts on the graphics buffer
+            sunGraphics.erase(); // Start erasing mode
+            sunGraphics.fill(0); // Use black to erase
+            for (let i = 0; i < numCuts; i++) {
+                let yOffset = map(i, 0, numCuts, -radius, radius - cutHeight);
+                sunGraphics.rect(x - radius, y + yOffset + radius - cutHeight / 2, radius * 2, cutHeight);
+            }
+            sunGraphics.noErase(); // Stop erasing mode
+            sunGraphics.pop();
+        }
+
+        function drawWireframeGround() {
+            let groundHeight = height / 2.5;
+            let gridSpacing = 30;
+            
+            stroke(125, 18, 255, 255); // Wireframe ground
+            noFill();
+            
+            // Draw horizontal lines (parallel to horizon)
+            for (let y = 0; y <= groundHeight; y += gridSpacing / 5) {
+                strokeWeight(1 + 7 * (gridSpacing / y));
+                line(0, ((height - y) * (gridSpacing / y)) + height / 2, width, ((height - y) * (gridSpacing / y)) + height / 2);
+            }
+            
+            strokeWeight(3);
+            // Draw vertical lines (perspective effect, but aligned horizontally)
+            for (let x = -groundOffset % gridSpacing; x <= width; x += gridSpacing) {
+                line(x, height - groundHeight, x + (x - width / 2), height);
+            }
+        }
+
+        function drawWireframePalmTree(tree) {
+            let trunkBaseX = tree.tbx - (groundOffset * 0.003 * tree.tby);
+            let trunkBaseY = tree.tby;
+            let trunkTipX = trunkBaseX + tree.ttx;
+            let trunkTipY = trunkBaseY - tree.tty;
+            let numFronds = tree.n; 
+            
+            // Draw the trunk
+            stroke(165, 42, 42);
+            strokeWeight(10);
+            curve(trunkBaseX + tree.tbll, trunkBaseY, trunkBaseX, trunkBaseY, trunkTipX, trunkTipY, trunkTipX + tree.tbtl, trunkTipY);
+            curve(trunkBaseX - tree.tblr, trunkBaseY, trunkBaseX, trunkBaseY, trunkTipX, trunkTipY, trunkTipX - tree.tbtr, trunkTipY);
+            
+            // Draw fronds
+            stroke(57, 255, 20);
+            for (let i = 0; i < numFronds; i++) {
+                let frondTipX = trunkTipX + tree.ftx[i];
+                let frondTipY = trunkTipY + tree.fty[i];
+                
+                curve(frondTipX - tree.ftc[4 * i], frondTipY, frondTipX, frondTipY, trunkTipX, trunkTipY, trunkTipX - tree.ftc[(4 * i) + 1], trunkTipY);
+                curve(frondTipX + tree.ftc[(4 * i) + 2], frondTipY, frondTipX, frondTipY, trunkTipX, trunkTipY, trunkTipX + tree.ftc[(4 * i) + 3], trunkTipY);
+            }
+        }
+
+        function drawMountain(mountain) {
+            fill(0, 255, 255);
+            stroke(0, 255, 255);
+            let passingSpeed = groundOffset / 4;
+            for (let i = 0; i < mountain.nt; i++) {
+                triangle(mountain.bx - passingSpeed, mountain.by, mountain.bx + mountain.bw - passingSpeed, mountain.by, mountain.tx[i] - passingSpeed, mountain.ty[i]);
+            }
+            noFill();
+        }
+
+        function makeTree() {
+            let frondTipX_arr = [];
+            let frondTipY_arr = [];
+            let frondCurves_arr = [];
+            let numFronds = random(3, 5);
+            for (let i = 0; i < numFronds; i++) {
+                let frondTipX;
+                if (i % 2 == 0) {
+                    frondTipX = random(height / 3, height / 1.5) / 2;
+                } else {
+                    frondTipX = random(height / 3, height / 1.5) / -2;
+                }
+                frondTipX_arr.push(frondTipX);
+                let fy = random(-height / 5, height / 4);
+                while (fy > -height / 25 && fy < height / 16) {
+                    fy = random(-height / 5, height / 4);
+                }
+                frondTipY_arr.push(fy);
+                
+                for (let j = 0; j < 4; j++) {
+                    frondCurves_arr.push(random(width / 4, width / 2));
+                }
+            }
+
+            let y = random(height / 1.7, height / 1.3); // Random base initial y position
+            let x = random(1.3 * width, 3 * width) + (groundOffset * 0.003 * y); // Random base initial x position
+
+            return {
+                tby: y,
+                tbx: x,
+                n: numFronds, // Number of fronds
+                ttx: random(width / -10, width / 10), // Random tip initial x position
+                tty: random(height / 3, height / 2.5), // Random tip initial y position
+                tbll: random(width / 3), // Tree bulge lower left
+                tbtl: random(width / 3), // Tree bulge top left
+                tblr: random(width / 3), // Tree bulge lower right
+                tbtr: random(width / 3), // Tree bulge top right
+                ftx: frondTipX_arr, // Array of x frond position
+                fty: frondTipY_arr, // Array of y frond position
+                ftc: frondCurves_arr // Array in stacks of 4 curve positions
+            };
+        }
+
+        function makeMountain() {
+            let baseX = random(width, width * 1.2) + (groundOffset / 4);
+            let baseWidth = random(width / 4, width / 3);
+            let baseY = height / 1.74;
+            
+            let numTips = random(3, 5);
+            let tipsX = [];
+            let tipsY = [];
+            for (let i = 0; i < numTips; i++) {
+                tipsX.push(random(baseX + (baseWidth * 0.1), baseX + baseWidth - (baseWidth * 0.1)));
+                tipsY.push(random(height / 3, height / 2.5));
+            }
+
+            return {
+                bx: baseX,
+                bw: baseWidth,
+                by: baseY,
+                nt: numTips,
+                tx: tipsX,
+                ty: tipsY
+            };
+        }
+    </script>
+</body>
+</html>

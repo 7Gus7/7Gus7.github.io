@@ -1,0 +1,161 @@
+body {
+    margin: 0;
+    padding: 0;
+    background-image: url('https://f4.bcbits.com/img/a1924344540_10.jpg');
+    background-size: cover;
+    font-family: 'Comic Sans MS', sans-serif; /* 90s style font */
+    height: 2000px; /* Make the body taller to allow scrolling */
+    overflow-y: scroll; /* Enable scrolling */
+    overflow-x: hidden;
+    position: relative; /* Allow absolute positioning within body */
+    zoom: 0.75;
+}
+
+.container {
+    position: relative;
+    height: 100%;
+    width: 100%;
+}
+
+.tv {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    width: 500px; /* Adjust the width as needed */
+    height: auto;
+    z-index: 10;
+}
+
+.tv img {
+    width: 125%;
+    height: auto;
+    display: block;
+    filter: contrast(80%) brightness(0.9);
+}
+
+.tv-text {
+    position: absolute;
+    top: 0%; /* Adjust the position of the text inside the TV */
+    left: 25%;
+    width: 80%;
+    color: white;
+    text-align: center;
+    background: linear-gradient(90deg, red, orange, yellow, green, blue, indigo, violet, red, orange, yellow);
+    background-size: 450%; /* Make the background large enough to animate */
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    animation: rainbow-text 5s linear infinite;
+}
+
+.tv-text h1, .tv-text h2 {
+    text-shadow: 0 0 10px white;
+    font-size: 2.3em;
+}
+
+/* Animation for moving rainbow effect */
+@keyframes rainbow-text {
+    0% {
+        background-position: 0% 50%;
+    }
+    100% {
+        background-position: 100% 50%;
+    }
+}
+
+.bubble-content {
+    position: absolute;
+    color: white;
+    font-size: 1.2em;
+    text-align: center;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden; /* Prevent content from extending beyond the bubble */
+}
+
+.bubble-content img {
+    max-width: 50%;
+    max-height: 50%;
+    object-fit: contain;
+}
+
+.bubble-content button {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    background-color: #ff5733;
+    color: white;
+    font-size: 1em;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.bubble-content button:hover {
+    background-color: #c70039;
+}
+
+
+.bubble-content iframe {
+    width: 50%;
+    height: 50%;
+}
+
+.bubble-content a {
+    color: black;
+    text-decoration: none;
+    font-size: 1.2em;
+    text-decoration: underline; /* Add underline to links */
+}
+
+.bubble-content p {
+    color: white;
+    font-size: 1.2em;
+    margin: 0;
+}
+
+.bubble {
+    position: absolute;
+    cursor: pointer;
+    overflow: hidden; /* Prevents bubbles from extending beyond their container */
+    transition: transform 0.2s;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.bubble:hover {
+    transform: scale(1.1);
+}
+
+.bubble img {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
+    animation: rotation 10s infinite linear;
+}
+
+.bubble p {
+    position: absolute;
+    color: white;
+    font-size: 1.2em;
+    text-align: center;
+    pointer-events: none; /* Ensure text doesn't interfere with clicking */
+}
+
+.bubble-black p {
+    color: black; /* Set text color to black for Bubble 3 and 5 */
+}
+
+@keyframes rotation {
+    from {
+      transform: rotate(0deg);
+    }
+    to {
+      transform: rotate(360deg);
+    }
+}
